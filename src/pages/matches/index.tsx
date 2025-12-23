@@ -4,6 +4,7 @@ import { PlusOutlined, DeleteOutlined, ExclamationCircleOutlined } from '@ant-de
 import { DefaultApi } from '../../apis/DefaultApi';
 import type { Match, League, Team } from '../../apis/DefaultApi';
 import { useNavigate } from 'react-router-dom';
+import dayjs from 'dayjs';
 
 const MatchesPage: React.FC = () => {
   const [data, setData] = useState<Match[]>([]);
@@ -33,6 +34,13 @@ const MatchesPage: React.FC = () => {
   const getTeamName = (id: number) => teams.find(t => t.id === id)?.name || id;
 
   const columns = [
+    {
+      title: '比赛时间',
+      dataIndex: 'matchTime',
+      width: 180,
+      key: 'matchTime',
+      render: (text: string) => text ? dayjs(text).format('YYYY-MM-DD HH:mm') : '-'
+    },
     { 
       title: '所属联赛', 
       dataIndex: 'leagueId', 
@@ -61,6 +69,13 @@ const MatchesPage: React.FC = () => {
       width: 250,
       key: 'awayTeamId',
       render: (id: number) => getTeamName(id)
+    },
+    {
+      title: '数据更新时间',
+      dataIndex: 'dataUpdateTime',
+      width: 180,
+      key: 'dataUpdateTime',
+      render: (text: string) => text ? new Date(text).toLocaleString() : '-'
     },
     { title: '备注', dataIndex: 'remark', key: 'remark', ellipsis: true },
     {

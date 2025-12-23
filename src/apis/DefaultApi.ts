@@ -51,6 +51,8 @@ export interface Match {
   remark: string;
   homeTeamRank?: number;
   awayTeamRank?: number;
+  matchTime?: string;
+  dataUpdateTime?: string;
 }
 
 const BASE_URL = 'http://localhost:3000'; // Assuming backend runs on 8080, user can change this

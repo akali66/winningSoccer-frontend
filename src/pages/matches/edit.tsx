@@ -34,7 +34,11 @@ const MatchEdit: React.FC = () => {
 
   const handleFinish = async (values: any) => {
     try {
-      await DefaultApi.baseUrlMatchesIdPut(Number(id), values);
+      const updatedMatch = {
+        ...values,
+        dataUpdateTime: new Date().toISOString(),
+      };
+      await DefaultApi.baseUrlMatchesIdPut(Number(id), updatedMatch);
       message.success('更新成功');
       navigate(`/matches/${id}`);
     } catch (e) {

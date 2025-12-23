@@ -12,6 +12,7 @@ const NewMatchPage: React.FC = () => {
     try {
       const newMatch = {
         ...values,
+        dataUpdateTime: new Date().toISOString(),
         // 默认值填充，防止 undefined
         theoryWin: values.theoryWin || "5.01",
         theoryDraw: values.theoryDraw || "3.58",

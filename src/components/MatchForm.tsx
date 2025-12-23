@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Form, Select, Input, Row, Col, Button, Space, InputNumber } from 'antd';
+import { Form, Select, Input, Row, Col, Button, Space, InputNumber, DatePicker } from 'antd';
+import dayjs from 'dayjs';
+import ScoreInput from './ScoreInput';
 import { DefaultApi } from '../apis/DefaultApi';
 import type { League, Team, Match } from '../apis/DefaultApi';
 
@@ -132,6 +134,27 @@ const MatchForm: React.FC<MatchFormProps> = ({ initialValues, onFinish, onCancel
         </Col>
       </Row>
 
+      {/* 时间信息 */}
+      <Row justify="space-between" align="middle" style={{ marginBottom: 24 }}>
+        <Col>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ fontSize: 14, fontWeight: 'bold' }}>比赛时间:</span>
+                <Form.Item name="matchTime" getValueProps={(i) => ({ value: i ? dayjs(i) : null })} getValueFromEvent={(e) => e ? e.toISOString() : null} style={{ marginBottom: 0 }}>
+                {readOnly ? (
+                    <span style={{ fontSize: 16, fontWeight: 'bold' }}>{initialValues?.matchTime ? dayjs(initialValues.matchTime).format('YYYY-MM-DD HH:mm') : '-'}</span>
+                ) : (
+                    <DatePicker showTime format="YYYY-MM-DD HH:mm" placeholder="选择比赛时间" />
+                )}
+                </Form.Item>
+            </div>
+        </Col>
+        <Col>
+             <div style={{ color: '#999', fontSize: 12 }}>
+                 {initialValues?.dataUpdateTime ? dayjs(initialValues.dataUpdateTime).format('YYYY-MM-DD HH:mm:ss') : ''}
+             </div>
+        </Col>
+      </Row>
+
       <Row gutter={48} align="top">
         {/* 主队区域 */}
         <Col span={8} style={{ textAlign: 'center' }}>
@@ -177,10 +200,10 @@ const MatchForm: React.FC<MatchFormProps> = ({ initialValues, onFinish, onCancel
         <Col span={8} style={{ textAlign: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 32, marginTop: 40 }}>
              {readOnly ? (
-                 <div style={{ fontSize: 32, fontWeight: 'bold' }}>{initialValues?.score || '-:-'}</div>
+                 <ScoreInput value={initialValues?.score} readOnly={true} />
              ) : (
-                <Form.Item name="score" style={{ marginBottom: 0, width: 120 }}>
-                    <Input placeholder="比分" style={{ textAlign: 'center', fontSize: 24, fontWeight: 'bold' }} />
+                <Form.Item name="score" style={{ marginBottom: 0 }}>
+                    <ScoreInput />
                 </Form.Item>
              )}
           </div>
