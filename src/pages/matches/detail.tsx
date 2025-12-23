@@ -1,18 +1,32 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FloatButton, message, Modal } from 'antd';
+import { FloatButton, message, Modal, Spin } from 'antd';
 import { EditOutlined, DeleteOutlined, ArrowLeftOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
-import { mockMatches } from '../../mock/data';
+import { DefaultApi } from '../../apis/DefaultApi';
+import type { Match } from '../../apis/DefaultApi';
 import MatchForm from '../../components/MatchForm';
 
 const MatchDetail: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  
-  // Find data
-  const matchIndex = mockMatches.findIndex(item => item.id === Number(id));
-  const data = mockMatches[matchIndex];
+  const [data, setData] = useState<Match | null>(null);
+  const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const match = await DefaultApi.baseUrlMatchesIdGet(Number(id));
+        setData(match);
+      } catch (error) {
+        message.error('获取数据失败');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [id]);
+
+  if (loading) return <div style={{ padding: 24, textAlign: 'center' }}><Spin /></div>;
   if (!data) {
     return <div>未找到数据</div>;
   }
@@ -25,10 +39,14 @@ const MatchDetail: React.FC = () => {
       okText: '是',
       okType: 'danger',
       cancelText: '否',
-      onOk() {
-        mockMatches.splice(matchIndex, 1);
-        message.success('删除成功');
-        navigate('/matches');
+      onOk: async () => {
+        try {
+          await DefaultApi.baseUrlMatchesIdDelete(Number(id));
+          message.success('删除成功');
+          navigate('/matches');
+        } catch (e) {
+          message.error('删除失败');
+        }
       },
     });
   };
@@ -55,7 +73,6 @@ const MatchDetail: React.FC = () => {
         <FloatButton 
           icon={<DeleteOutlined />} 
           type="primary" 
-          danger 
           tooltip="删除" 
           onClick={handleDelete}
         />

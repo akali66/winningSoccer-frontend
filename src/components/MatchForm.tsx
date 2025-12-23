@@ -1,49 +1,13 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Form, Select, Input, Row, Col, Button, Space, InputNumber } from 'antd';
-import { mockLeagues, mockTeams } from '../mock/data';
-import type { Match } from '../mock/data';
+import { DefaultApi } from '../apis/DefaultApi';
+import type { League, Team, Match } from '../apis/DefaultApi';
 
 interface StatusSelectorProps {
   value?: number;
   onChange?: (value: number) => void;
   readOnly?: boolean;
 }
-
-const StatusSelector: React.FC<StatusSelectorProps> = ({ value, onChange, readOnly }) => {
-  const options = [
-    { val: 1, label: '胜', color: '#52c41a' }, // Green
-    { val: 2, label: '平', color: '#1890ff' }, // Blue
-    { val: 0, label: '负', color: '#ff4d4f' }, // Red
-  ];
-
-  return (
-    <Space direction="vertical" size="small">
-      {options.map((opt) => (
-        <div
-          key={opt.val}
-          onClick={() => !readOnly && onChange?.(opt.val)}
-          style={{
-            width: 32,
-            height: 32,
-            borderRadius: '50%',
-            backgroundColor: value === opt.val ? opt.color : '#f0f0f0',
-            color: value === opt.val ? '#fff' : '#000',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: readOnly ? 'default' : 'pointer',
-            border: '1px solid #d9d9d9',
-            fontSize: 12,
-            transition: 'all 0.3s',
-            opacity: 1, 
-          }}
-        >
-          {opt.label}
-        </div>
-      ))}
-    </Space>
-  );
-};
 
 const StatusSelectorHorizontal: React.FC<StatusSelectorProps> = ({ value, onChange, readOnly }) => {
     const options = [
@@ -110,6 +74,25 @@ const handicapOptions = Array.from({ length: 25 }, (_, i) => {
 });
 
 const MatchForm: React.FC<MatchFormProps> = ({ initialValues, onFinish, onCancel, readOnly, form }) => {
+  const [leagues, setLeagues] = useState<League[]>([]);
+  const [teams, setTeams] = useState<Team[]>([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [leaguesRes, teamsRes] = await Promise.all([
+          DefaultApi.baseUrlLeaguesGet(),
+          DefaultApi.baseUrlTeamsGet()
+        ]);
+        setLeagues(leaguesRes);
+        setTeams(teamsRes);
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    fetchData();
+  }, []);
+
   // Helper to render text or form item
   const renderField = (name: string, renderInput: React.ReactNode, renderText: () => React.ReactNode, rules: any[] = []) => {
     if (readOnly) {
@@ -122,8 +105,8 @@ const MatchForm: React.FC<MatchFormProps> = ({ initialValues, onFinish, onCancel
     );
   };
 
-  const getLeagueName = (id?: number) => mockLeagues.find(l => l.id === id)?.name || '-';
-  const getTeamName = (id?: number) => mockTeams.find(t => t.id === id)?.name || '-';
+  const getLeagueName = (id?: number) => leagues.find(l => l.id === id)?.name || '-';
+  const getTeamName = (id?: number) => teams.find(t => t.id === id)?.name || '-';
 
   return (
     <Form
@@ -142,7 +125,7 @@ const MatchForm: React.FC<MatchFormProps> = ({ initialValues, onFinish, onCancel
             ) : (
                 <Form.Item name="leagueId" rules={[{ required: true, message: '请选择联赛' }]}>
                     <Select placeholder="选择联赛" size="large" style={{ textAlign: 'center' }}>
-                    {mockLeagues.map(l => <Select.Option key={l.id} value={l.id}>{l.name}</Select.Option>)}
+                    {leagues.map(l => <Select.Option key={l.id} value={l.id}>{l.name}</Select.Option>)}
                     </Select>
                 </Form.Item>
             )}
@@ -168,7 +151,7 @@ const MatchForm: React.FC<MatchFormProps> = ({ initialValues, onFinish, onCancel
           ) : (
             <Form.Item name="homeTeamId" rules={[{ required: true, message: '请选择主队' }]}>
                 <Select placeholder="选择主队" size="large">
-                {mockTeams.map(t => <Select.Option key={t.id} value={t.id}>{t.name}</Select.Option>)}
+                {teams.map(t => <Select.Option key={t.id} value={t.id}>{t.name}</Select.Option>)}
                 </Select>
             </Form.Item>
           )}
@@ -261,7 +244,7 @@ const MatchForm: React.FC<MatchFormProps> = ({ initialValues, onFinish, onCancel
           ) : (
             <Form.Item name="awayTeamId" rules={[{ required: true, message: '请选择客队' }]}>
                 <Select placeholder="选择客队" size="large">
-                {mockTeams.map(t => <Select.Option key={t.id} value={t.id}>{t.name}</Select.Option>)}
+                {teams.map(t => <Select.Option key={t.id} value={t.id}>{t.name}</Select.Option>)}
                 </Select>
             </Form.Item>
           )}

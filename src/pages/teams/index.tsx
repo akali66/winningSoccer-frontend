@@ -1,28 +1,39 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Table, Button, Space, Drawer, Form, Input, Popconfirm, message, FloatButton, Select } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
-import { mockTeams, mockLeagues } from '../../mock/data';
-import type { Team } from '../../mock/data';
+import { DefaultApi } from '../../apis/DefaultApi';
+import type { Team, League } from '../../apis/DefaultApi';
 import { useNavigate } from 'react-router-dom';
 
 const TeamsPage: React.FC = () => {
-  const [data, setData] = useState<Team[]>(mockTeams);
+  const [data, setData] = useState<Team[]>([]);
+  const [leagues, setLeagues] = useState<League[]>([]);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<Team | null>(null);
   const [form] = Form.useForm();
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [teamsRes, leaguesRes] = await Promise.all([
+          DefaultApi.baseUrlTeamsGet(),
+          DefaultApi.baseUrlLeaguesGet()
+        ]);
+        setData(teamsRes);
+        setLeagues(leaguesRes);
+      } catch (e) {
+        message.error('加载失败');
+      }
+    };
+    fetchData();
+  }, []);
+
   const getLeagueName = (leagueId: number) => {
-    return mockLeagues.find(l => l.id === leagueId)?.name || '未知联赛';
+    return leagues.find(l => l.id === leagueId)?.name || '未知联赛';
   };
 
   const columns = [
-    {
-      title: 'ID',
-      dataIndex: 'id',
-      key: 'id',
-      width: 80,
-    },
     {
       title: '球队名称',
       dataIndex: 'name',
@@ -76,14 +87,18 @@ const TeamsPage: React.FC = () => {
   };
 
   const handleSave = () => {
-    form.validateFields().then(values => {
+    form.validateFields().then(async values => {
       if (editingItem) {
         setData(data.map(item => item.id === editingItem.id ? { ...item, ...values } : item));
         message.success('更新成功');
       } else {
-        const newId = Math.max(...data.map(item => item.id), 0) + 1;
-        setData([...data, { id: newId, ...values }]);
-        message.success('添加成功');
+        try {
+          const newTeam = await DefaultApi.baseUrlTeamsPost(values);
+          setData([...data, newTeam]);
+          message.success('添加成功');
+        } catch (e) {
+          message.error('添加失败');
+        }
       }
       setIsDrawerOpen(false);
     });
@@ -139,7 +154,7 @@ const TeamsPage: React.FC = () => {
             rules={[{ required: true, message: '请选择所属联赛' }]}
           >
             <Select placeholder="请选择所属联赛">
-              {mockLeagues.map(league => (
+              {leagues.map(league => (
                 <Select.Option key={league.id} value={league.id}>{league.name}</Select.Option>
               ))}
             </Select>

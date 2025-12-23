@@ -1,24 +1,30 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Table, Button, Space, Drawer, Form, Input, Popconfirm, message, FloatButton } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
-import { mockLeagues } from '../../mock/data';
-import type { League } from '../../mock/data';
+import { DefaultApi } from '../../apis/DefaultApi';
+import type { League } from '../../apis/DefaultApi';
 import { useNavigate } from 'react-router-dom';
 
 const LeaguesPage: React.FC = () => {
-  const [data, setData] = useState<League[]>(mockLeagues);
+  const [data, setData] = useState<League[]>([]);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<League | null>(null);
   const [form] = Form.useForm();
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await DefaultApi.baseUrlLeaguesGet();
+        setData(res);
+      } catch (error) {
+        message.error('获取数据失败');
+      }
+    };
+    fetchData();
+  }, []);
+
   const columns = [
-    {
-      title: 'ID',
-      dataIndex: 'id',
-      key: 'id',
-      width: 80,
-    },
     {
       title: '联赛名称',
       dataIndex: 'name',
@@ -66,16 +72,20 @@ const LeaguesPage: React.FC = () => {
   };
 
   const handleSave = () => {
-    form.validateFields().then(values => {
+    form.validateFields().then(async values => {
       if (editingItem) {
         // Edit
         setData(data.map(item => item.id === editingItem.id ? { ...item, ...values } : item));
         message.success('更新成功');
       } else {
         // Add
-        const newId = Math.max(...data.map(item => item.id), 0) + 1;
-        setData([...data, { id: newId, ...values }]);
-        message.success('添加成功');
+        try {
+          const newLeague = await DefaultApi.baseUrlLeaguesPost(values);
+          setData([...data, newLeague]);
+          message.success('添加成功');
+        } catch (error) {
+          message.error('添加失败');
+        }
       }
       setIsDrawerOpen(false);
     });

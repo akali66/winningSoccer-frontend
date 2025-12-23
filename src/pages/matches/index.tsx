@@ -1,19 +1,38 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Table, Button, Space, message, FloatButton, Modal } from 'antd';
 import { PlusOutlined, DeleteOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
-import { mockMatches, mockLeagues, mockTeams } from '../../mock/data';
-import type { Match } from '../../mock/data';
+import { DefaultApi } from '../../apis/DefaultApi';
+import type { Match, League, Team } from '../../apis/DefaultApi';
 import { useNavigate } from 'react-router-dom';
 
 const MatchesPage: React.FC = () => {
-  const [data, setData] = useState<Match[]>(mockMatches);
+  const [data, setData] = useState<Match[]>([]);
+  const [leagues, setLeagues] = useState<League[]>([]);
+  const [teams, setTeams] = useState<Team[]>([]);
   const navigate = useNavigate();
 
-  const getLeagueName = (id: number) => mockLeagues.find(l => l.id === id)?.name || id;
-  const getTeamName = (id: number) => mockTeams.find(t => t.id === id)?.name || id;
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [matchesRes, leaguesRes, teamsRes] = await Promise.all([
+          DefaultApi.baseUrlMatchesGet(),
+          DefaultApi.baseUrlLeaguesGet(),
+          DefaultApi.baseUrlTeamsGet()
+        ]);
+        setData(matchesRes);
+        setLeagues(leaguesRes);
+        setTeams(teamsRes);
+      } catch (e) {
+        message.error('加载失败');
+      }
+    };
+    fetchData();
+  }, []);
+
+  const getLeagueName = (id: number) => leagues.find(l => l.id === id)?.name || id;
+  const getTeamName = (id: number) => teams.find(t => t.id === id)?.name || id;
 
   const columns = [
-    { title: '编号', dataIndex: 'id', key: 'id', width: 60 },
     { 
       title: '所属联赛', 
       dataIndex: 'leagueId', 
@@ -69,12 +88,14 @@ const MatchesPage: React.FC = () => {
       okText: '是',
       okType: 'danger',
       cancelText: '否',
-      onOk() {
-        setData(prev => prev.filter(item => item.id !== id));
-        // 同时更新 mock 数据，虽然这里是内存操作
-        const index = mockMatches.findIndex(m => m.id === id);
-        if (index > -1) mockMatches.splice(index, 1);
-        message.success('删除成功');
+      onOk: async () => {
+        try {
+          await DefaultApi.baseUrlMatchesIdDelete(id);
+          setData(prev => prev.filter(item => item.id !== id));
+          message.success('删除成功');
+        } catch (e) {
+          message.error('删除失败');
+        }
       },
     });
   };
