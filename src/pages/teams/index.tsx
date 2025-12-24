@@ -3,7 +3,7 @@ import { Table, Button, Space, Drawer, Form, Input, Popconfirm, message, FloatBu
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { DefaultApi } from '../../apis/DefaultApi';
 import type { Team, League } from '../../apis/DefaultApi';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const TeamsPage: React.FC = () => {
   const [data, setData] = useState<Team[]>([]);
@@ -12,6 +12,7 @@ const TeamsPage: React.FC = () => {
   const [editingItem, setEditingItem] = useState<Team | null>(null);
   const [form] = Form.useForm();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const fetchTeams = async (name?: string) => {
     try {
@@ -37,6 +38,17 @@ const TeamsPage: React.FC = () => {
     };
     initData();
   }, []);
+
+  useEffect(() => {
+    if (location.state?.action === 'add' && location.state?.leagueId) {
+      setEditingItem(null);
+      form.resetFields();
+      form.setFieldsValue({ leagueId: location.state.leagueId });
+      setIsDrawerOpen(true);
+      // 清除 state，避免刷新或返回时重复触发
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state, form, navigate, location.pathname]);
 
   const handleSearch = (value: string) => {
     fetchTeams(value);
