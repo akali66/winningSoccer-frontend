@@ -10,13 +10,13 @@ import {
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import logo from "../assets/logo.png";
 
-const { Header, Sider, Content } = Layout;
+const { Sider, Content } = Layout;
 
 const MainLayout: React.FC = () => {
   const [collapsed, setCollapsed] = useState(true);
   const [pinned, setPinned] = useState(false);
   const {
-    token: { colorBgContainer, borderRadiusLG },
+    token: { borderRadiusLG },
   } = theme.useToken();
   const navigate = useNavigate();
   const location = useLocation();
@@ -109,22 +109,6 @@ const MainLayout: React.FC = () => {
         </div>
       </Sider>
       <Layout>
-        {/* <Header style={{ padding: 0, background: colorBgContainer, display: 'flex', alignItems: 'center' }}>
-          <div
-            style={{
-              padding: '0 24px',
-              fontSize: '18px',
-              cursor: 'pointer',
-              transition: 'color 0.3s',
-            }}
-            onClick={() => setCollapsed(!collapsed)}
-          >
-            {collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-          </div>
-          <div style={{ fontSize: '16px', fontWeight: 500 }}>
-            足球数据管理系统
-          </div>
-        </Header> */}
         <Content
           style={{
             margin: "24px 16px",
