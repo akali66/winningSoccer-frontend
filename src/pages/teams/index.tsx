@@ -13,8 +13,17 @@ const TeamsPage: React.FC = () => {
   const [form] = Form.useForm();
   const navigate = useNavigate();
 
+  const fetchTeams = async (name?: string) => {
+    try {
+      const teamsRes = await DefaultApi.baseUrlTeamsGet(name);
+      setData(teamsRes);
+    } catch (e) {
+      message.error('加载球队失败');
+    }
+  };
+
   useEffect(() => {
-    const fetchData = async () => {
+    const initData = async () => {
       try {
         const [teamsRes, leaguesRes] = await Promise.all([
           DefaultApi.baseUrlTeamsGet(),
@@ -26,8 +35,12 @@ const TeamsPage: React.FC = () => {
         message.error('加载失败');
       }
     };
-    fetchData();
+    initData();
   }, []);
+
+  const handleSearch = (value: string) => {
+    fetchTeams(value);
+  };
 
   const getLeagueName = (leagueId: number) => {
     return leagues.find(l => l.id === leagueId)?.name || '未知联赛';
@@ -108,6 +121,12 @@ const TeamsPage: React.FC = () => {
     <div>
       <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h2 style={{ margin: 0 }}>球队管理</h2>
+        <Input.Search
+          placeholder="搜索球队名称"
+          allowClear
+          onSearch={handleSearch}
+          style={{ width: 200 }}
+        />
       </div>
       
       <Table 

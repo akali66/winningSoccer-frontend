@@ -12,17 +12,22 @@ const LeaguesPage: React.FC = () => {
   const [form] = Form.useForm();
   const navigate = useNavigate();
 
+  const fetchData = async (name?: string) => {
+    try {
+      const res = await DefaultApi.baseUrlLeaguesGet(name);
+      setData(res);
+    } catch (error) {
+      message.error('获取数据失败');
+    }
+  };
+
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const res = await DefaultApi.baseUrlLeaguesGet();
-        setData(res);
-      } catch (error) {
-        message.error('获取数据失败');
-      }
-    };
     fetchData();
   }, []);
+
+  const handleSearch = (value: string) => {
+    fetchData(value);
+  };
 
   const columns = [
     {
@@ -95,6 +100,12 @@ const LeaguesPage: React.FC = () => {
     <div>
       <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h2 style={{ margin: 0 }}>联赛管理</h2>
+        <Input.Search
+          placeholder="搜索联赛名称"
+          allowClear
+          onSearch={handleSearch}
+          style={{ width: 200 }}
+        />
       </div>
       
       <Table 

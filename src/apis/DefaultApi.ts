@@ -68,8 +68,10 @@ export class DefaultApi {
   /**
    * 获取所有联赛
    */
-  public static async baseUrlLeaguesGet(): Promise<League[]> {
-    const response = await apiClient.get<League[]>('/leagues');
+  public static async baseUrlLeaguesGet(name?: string): Promise<League[]> {
+    const response = await apiClient.get<League[]>('/leagues', {
+      params: { name }
+    });
     return response.data;
   }
 
@@ -123,8 +125,10 @@ export class DefaultApi {
   /**
    * 获取球队
    */
-  public static async baseUrlTeamsGet(): Promise<Team[]> {
-    const response = await apiClient.get<Team[]>('/teams');
+  public static async baseUrlTeamsGet(name?: string): Promise<Team[]> {
+    const response = await apiClient.get<Team[]>('/teams', {
+      params: { name }
+    });
     return response.data;
   }
 
